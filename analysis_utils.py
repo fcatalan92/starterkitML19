@@ -11,12 +11,10 @@ from IPython.display import HTML
 
 # Data Visualization Functions
 ###########################################################################################
-def plot_distr(x_data, y_data, column=None, figsize=None, bins=10, **kwds):
+def plot_distr(df, column=None, figsize=None, bins=10, **kwds):
     """Build a DataFrame and create two dataset for signal and bkg
-
     Draw histogram of the DataFrame's series comparing the distribution
     in `data1` to `data2`.
-
     X: data vector
     y: class vector
     column: string or sequence
@@ -29,8 +27,6 @@ def plot_distr(x_data, y_data, column=None, figsize=None, bins=10, **kwds):
         To be passed to hist function
     """
 
-    df = pd.DataFrame(np.hstack((x_data, y_data.reshape(y_data.shape[0], -1))),
-                      columns=column+['y'])
     data1 = df[df.y < 0.5]
     data2 = df[df.y > 0.5]
 
@@ -41,29 +37,29 @@ def plot_distr(x_data, y_data, column=None, figsize=None, bins=10, **kwds):
         data2 = data2[column]
 
     if figsize is None:
-        figsize = [15, 10]
+        figsize = [20, 15]
 
-    axes = data1.hist(column=column, color='blue', alpha=0.5, bins=bins, figsize=figsize,
-                      label="Background", density=True, grid=False, **kwds)
+    axes = data1.hist(column=column, color='tab:blue', alpha=0.5, bins=bins, figsize=figsize,
+                      label="background", density=True, log=True, grid=False, **kwds)
     axes = axes.flatten()
     axes = axes[:len(column)]
-    data2.hist(ax=axes, column=column, color='red', alpha=0.5, bins=bins, label="Signal",
-               density=True, grid=False, **kwds)[0].legend()
+    data2.hist(ax=axes, column=column, color='tab:orange', alpha=0.5, bins=bins, label="signal",
+               density=True, log=True, grid=False, **kwds)[0].legend()
     for a in axes:
-        a.set_ylabel("Arbitrary Units")
+        a.set_ylabel('Counts (arb. units)')
 
 
-def plot_corr(x_data, y_data, column, title, figsize=(6, 6), **kwds):
+def plot_corr(df, columns, title, figsize=(9, 8), **kwds):
     """Calculate pairwise correlation between features.
-
     Extra arguments are passed on to DataFrame.corr()
     """
-    df = pd.DataFrame(np.hstack((x_data, y_data.reshape(y_data.shape[0], -1))),
-                      columns=column+['y'])
 
-    if title == "Signal":
+    col = columns+['y']
+    df = df[col]
+
+    if title == "signal":
         data = df[df.y > 0.5].drop('y', 1)
-    elif title == "Background":
+    elif title == "background":
         data = df[df.y < 0.5].drop('y', 1)
 
     corrmat = data.corr(**kwds)
@@ -261,10 +257,8 @@ def show_solution(for_next=True):
             function {f_name}() {{
                 {cell_selector}.find('div.input').toggle();
             }}
-
             {js_hide_current}
         </script>
-
         <a href="javascript:{f_name}()">{toggle_text}</a>
     """.format(
         f_name=js_f_name,
