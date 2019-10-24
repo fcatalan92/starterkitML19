@@ -21,13 +21,9 @@ Now we need to clone the files used for the tutorial. Click on the download butt
 
 ![download](img/download.png)
 
-and insert the repository url <https://github.com/fcatalan92/starterkitML19> adding .git at the end.
+and insert the repository url `https://github.com/fcatalan92/starterkitML19.git` .
 
 ![repo](img/insert_repo.png)
-
-You can get the full path to clone here
-
-![repo_link](img/repo_link.png)
 
 ## Open the notebook
 
