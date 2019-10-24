@@ -54,7 +54,7 @@ def plot_corr(df, columns, title, figsize=(9, 8), **kwds):
     Extra arguments are passed on to DataFrame.corr()
     """
 
-    col = columns+['y']
+    col = columns+['InvMass', 'y']
     df = df[col]
 
     if title == "signal":
@@ -100,68 +100,72 @@ def plot_roc(y_truth, model_decision):
     plt.grid()
 
 
-def plot_output_train_test(clf, x_train, y_train, x_test, y_test, model='xgb', branch_names=None,
-                           raw=True, bins=50, figsize=(7, 5), location='best', **kwds):
-    """
-    model could be 'xgb' or 'sklearn'
-    """
-    decisions = []
+def plot_output_train_test(clf, x_train, y_train, x_test, y_test, columns=None,
+                           raw=True, bins=50, figsize=(6, 5), ylim=(1e-5, 1e2), location='best', log=False, **kwds):
+    prediction = []
     for x, y in ((x_train, y_train), (x_test, y_test)):
-        if model == 'xgb':
-            d1 = clf.predict(xgb.DMatrix(x[y > 0.5], feature_names=branch_names), output_margin=raw)
-            d2 = clf.predict(xgb.DMatrix(x[y < 0.5], feature_names=branch_names), output_margin=raw)
-        elif model == 'sklearn':
-            d1 = clf.decision_function(x[y > 0.5]).ravel()
-            d2 = clf.decision_function(x[y < 0.5]).ravel()
-        else:
-            print('Error: wrong model typr used')
-            return
-        decisions += [d1, d2]
+        d1 = clf.predict(x[y > 0.5][columns], output_margin=raw)
+        d2 = clf.predict(x[y < 0.5][columns], output_margin=raw)
+        
+        prediction += [d1, d2]
 
-    low = min(np.min(d) for d in decisions)
-    high = max(np.max(d) for d in decisions)
+    low = min(np.min(d) for d in prediction)
+    high = max(np.max(d) for d in prediction)
     low_high = (low, high)
 
     plt.figure(figsize=figsize)
-    plt.hist(decisions[0], color='r', alpha=0.5, range=low_high, bins=bins,
-             histtype='stepfilled', density=True, label='S, train', **kwds)
-    plt.hist(decisions[1], color='b', alpha=0.5, range=low_high, bins=bins,
-             histtype='stepfilled', density=True, label='B, train', **kwds)
+    plt.hist(prediction[0], color='r', alpha=0.5, range=low_high, bins=bins,
+             histtype='stepfilled', density=True, label='S, train', log=log, **kwds)
+    plt.hist(prediction[1], color='b', alpha=0.5, range=low_high, bins=bins,
+             histtype='stepfilled', density=True, label='B, train', log=log, **kwds)
 
-    hist, bins = np.histogram(decisions[2], bins=bins, range=low_high, density=True)
-    scale = len(decisions[2]) / sum(hist)
+    hist, bins = np.histogram(prediction[2], bins=bins, range=low_high, density=True)
+    scale = len(prediction[2]) / sum(hist)
     err = np.sqrt(hist * scale) / scale
     center = (bins[:-1] + bins[1:]) / 2
     plt.errorbar(center, hist, yerr=err, fmt='o', c='r', label='S, test')
 
-    hist, bins = np.histogram(decisions[3], bins=bins, range=low_high, density=True)
-    scale = len(decisions[3]) / sum(hist)
+    hist, bins = np.histogram(prediction[3], bins=bins, range=low_high, density=True)
+    scale = len(prediction[3]) / sum(hist)
     err = np.sqrt(hist * scale) / scale
     plt.errorbar(center, hist, yerr=err, fmt='o', c='b', label='B, test')
 
     plt.gcf().subplots_adjust(left=0.14)
     plt.xlabel("BDT output", fontsize=15)
     plt.ylabel("Arbitrary units", fontsize=15)
+    if log:
+        plt.ylim(ylim[0], ylim[1]) 
     plt.legend(loc=location, frameon=False, fontsize=15)
+
+    plt.tight_layout()
 
 
 def plot_feature_imp(model, imp_list=None, line_pos=None):
 
     n_plots = len(imp_list)
-    _, ax1 = plt.subplots(ncols=n_plots, figsize=(20, 10), squeeze=False)
+    _, ax1 = plt.subplots(ncols=n_plots, figsize=(10, 6), squeeze=False)
     ax1 = ax1[0]
 
     for imp_type, axc in zip(imp_list, ax1):
-        feat_imp = pd.Series(model.get_score(importance_type=imp_type))
+        feat_imp = pd.Series(model.get_booster().get_score(importance_type=imp_type))
         feat_imp = feat_imp * 1. / feat_imp.sum()
-        feat_imp.plot(ax=axc, kind='bar', fontsize=25)
-        axc.set_ylabel(f'Relative {imp_type}', fontsize=35)
+        feat_imp.plot(ax=axc, kind='bar', fontsize=16)
+        axc.set_ylabel(f'Relative {imp_type}', fontsize=16)
         axc.set_xticklabels(axc.get_xticklabels())
 
         if line_pos is not None:
             axc.axhline(y=line_pos, color='r', linestyle='-', linewidth=6)
 
-    plt.tight_layout(w_pad=10)
+    plt.tight_layout()
+
+
+def plot_bdt_eff(threshold, eff_sig):
+    plt.plot(threshold, eff_sig, 'r.', label='Signal efficiency')
+    plt.legend()
+    plt.xlabel('BDT Score')
+    plt.ylabel('Efficiency')
+    plt.title('Efficiency vs Score')
+    plt.grid()
 
 
 #Training Functions
