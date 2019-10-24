@@ -6,3 +6,6 @@
 
 # ignore notebook checkpoint
 .ipynb_checkpoints
+
+# ignore pycache dir
+__pycache__/
