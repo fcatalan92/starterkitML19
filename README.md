@@ -31,4 +31,6 @@ You can get the full path to clone here
 
 ## Open the notebook
 
-Now enter in `starterkitML19' and open the notebook.
+Now open the notebook `MLStarterKit.ipynb` .
+
+![notebook](img/notebook.png)
