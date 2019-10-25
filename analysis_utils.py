@@ -1,11 +1,8 @@
-import io
-from contextlib import redirect_stdout
 import random
 import numpy as np
 import pandas as pd
 from pandas.core.index import Index
 import matplotlib.pyplot as plt
-import xgboost as xgb
 from sklearn.metrics import roc_curve, auc
 from IPython.display import HTML
 
@@ -106,7 +103,6 @@ def plot_output_train_test(clf, x_train, y_train, x_test, y_test, columns=None,
     for x, y in ((x_train, y_train), (x_test, y_test)):
         d1 = clf.predict(x[y > 0.5][columns], output_margin=raw)
         d2 = clf.predict(x[y < 0.5][columns], output_margin=raw)
-        
         prediction += [d1, d2]
 
     low = min(np.min(d) for d in prediction)
@@ -134,7 +130,7 @@ def plot_output_train_test(clf, x_train, y_train, x_test, y_test, columns=None,
     plt.xlabel("BDT output", fontsize=15)
     plt.ylabel("Arbitrary units", fontsize=15)
     if log:
-        plt.ylim(ylim[0], ylim[1]) 
+        plt.ylim(ylim[0], ylim[1])
     plt.legend(loc=location, frameon=False, fontsize=15)
 
     plt.tight_layout()
@@ -166,78 +162,6 @@ def plot_bdt_eff(threshold, eff_sig):
     plt.ylabel('Efficiency')
     plt.title('Efficiency vs Score')
     plt.grid()
-
-
-#Training Functions
-###########################################################################################
-def gs_1par(gs_dict, par_dict, train_data, num_rounds, seed, folds, metrics, n_early_stop):
-
-    fp_dict = gs_dict['first_par']
-    gs_params = fp_dict['par_values']
-
-    max_auc = 0.
-    max_std = 0.
-    best_params = None
-    for val in gs_params:
-        print(f"CV with {fp_dict['name']} = {val}")
-        # Update our parameters
-        par_dict[fp_dict['name']] = val
-
-        # Run CV
-        trap = io.StringIO()
-        with redirect_stdout(trap):
-            cv_results = xgb.cv(par_dict, train_data, num_boost_round=num_rounds, seed=seed,
-                                folds=folds, metrics=metrics, early_stopping_rounds=n_early_stop)
-
-        # Update best AUC
-        mean_auc = cv_results['test-auc-mean'].max()
-        boost_rounds = cv_results['test-auc-mean'].idxmax()
-        mean_std = cv_results['test-auc-std'][boost_rounds]
-        print(f"\tROC_AUC {mean_auc} +/- {mean_std} for {boost_rounds} rounds")
-        if mean_auc > max_auc:
-            max_auc = mean_auc
-            max_std = mean_std
-            best_params = val
-
-    print(f"\nBest params: {best_params}, ROC_AUC: {max_auc} +/- {max_std}\n")
-
-
-def gs_2par(gs_dict, par_dict, train_data, num_rounds, seed, folds, metrics, n_early_stop):
-
-    fp_dict = gs_dict['first_par']
-    sp_dict = gs_dict['second_par']
-    gs_params = [(first_val, second_val)
-                 for first_val in fp_dict['par_values']
-                 for second_val in sp_dict['par_values']
-                ]
-
-    max_auc = 0.
-    max_std = 0.
-    best_params = None
-    for first_val, second_val in gs_params:
-        print(f"CV with {fp_dict['name']} = {first_val}, {sp_dict['name']} = {second_val}")
-        # Update our parameters
-        par_dict[fp_dict['name']] = first_val
-        par_dict[sp_dict['name']] = second_val
-
-        # Run CV
-        trap = io.StringIO()
-        with redirect_stdout(trap):
-            cv_results = xgb.cv(par_dict, train_data, num_boost_round=num_rounds, seed=seed,
-                                folds=folds, metrics=metrics, early_stopping_rounds=n_early_stop)
-
-        # Update best AUC
-        mean_auc = cv_results['test-auc-mean'].max()
-        boost_rounds = cv_results['test-auc-mean'].idxmax()
-        mean_std = cv_results['test-auc-std'][boost_rounds]
-        print(f"\tROC_AUC {mean_auc} +/- {mean_std} for {boost_rounds} rounds")
-        if mean_auc > max_auc:
-            max_auc = mean_auc
-            max_std = mean_std
-            best_params = (first_val, second_val)
-
-    print(f"\nBest params: {best_params[0]}, {best_params[1]}, ROC_AUC: {max_auc} +/- {max_std}\n")
-
 
 # Utility for tutorial
 ###########################################################################################
@@ -272,3 +196,4 @@ def show_solution(for_next=True):
     )
 
     return HTML(html)
+    
