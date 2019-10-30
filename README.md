@@ -19,8 +19,6 @@ You should have this setup
 
 ![swan_conf](img/swan_configuration_highlight.png)
 
-![repo](img/insert_repo.png)
-
 ## Open the notebook
 
 Now open the notebook `MLStarterKit.ipynb` .
