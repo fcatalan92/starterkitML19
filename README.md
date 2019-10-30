@@ -4,7 +4,11 @@ Welcome at the ALICE ML tutorial. Before we start some preliminary steps are nee
 
 ## SWAN setup
 
-We will run this tutorial on CERN SWAN, so click here |open-swan| to go to SWAN and automatically download this repository.
+We will run this tutorial on CERN SWAN, so click here
+
+[![Open in SWAN](https://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png)](https://cern.ch/swanserver/cgi-bin/go?projurl=https://github.com/fcatalan92/starterkitML19.git)
+
+to go to SWAN and automatically download this repository.
 
 To have the right environment configure SWAN in this way:
 
@@ -22,7 +26,3 @@ You should have this setup
 Now open the notebook `MLStarterKit.ipynb` .
 
 ![notebook](img/notebook.png)
-
-.. |open-swan| :image:  <http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png>
-    :target: <https://cern.ch/swanserver/cgi-bin/go?projurl=https://github.com/fcatalan92/starterkitML19.git>
-    :alt: Open in SWAN
