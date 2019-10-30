@@ -1,8 +1,10 @@
 # ignore all logs
 *.log
 
-# ignore ROOT files
+# ignore data files
 *.root
+*.sav
+*.pkl
 
 # ignore notebook checkpoint
 .ipynb_checkpoints
